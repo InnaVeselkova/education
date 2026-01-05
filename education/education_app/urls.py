@@ -5,6 +5,7 @@ from rest_framework.urls import app_name
 from .views import CourseViewSet, LessonList, LessonDetail
 
 app_name='education_app'
+
 # Создание маршрутизатора для ViewSet
 router = DefaultRouter()
 router.register(r"courses", CourseViewSet)
