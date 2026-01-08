@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     "users",
     "education_app",
     "rest_framework.authtoken",
+    'django_filters',
 ]
 
 MIDDLEWARE = [
@@ -110,4 +111,8 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',  # Обеспечивает, что требуется аутентификация по умолчанию
     ],
+    'DEFAULT_FILTER_BACKENDS': (
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.OrderingFilter',  # Для сортировки
+    ),
 }

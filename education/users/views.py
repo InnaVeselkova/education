@@ -5,6 +5,10 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import Payment
 from .serializers import UserSerializer, PaymentSerializer
+from rest_framework import generics, filters
+from django_filters.rest_framework import DjangoFilterBackend
+
+
 
 
 class CustomAuthToken(ObtainAuthToken):
@@ -26,3 +30,11 @@ class UserProfileEditView(generics.UpdateAPIView):
 class PaymentListCreateView(generics.ListCreateAPIView):
     queryset = Payment.objects.all()
     serializer_class = PaymentSerializer
+    filter_backends = (DjangoFilterBackend, filters.OrderingFilter)
+    filterset_fields = {
+        'paid_course': 'paid_course',  # Фильтрация по курсу
+        'paid_lesson': 'paid_lesson',  # Фильтрация по уроку
+        'payment_method': 'payment_method',  # Фильтрация по методу оплаты
+    }
+    ordering_fields = ['payment_date']  # Поля для сортировки
+    ordering = ['payment_date']
