@@ -1,7 +1,25 @@
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 
-from education.education_app.models import Course, Lesson
+from education_app.models import Course, Lesson
+
+
+class CustomUserManager(BaseUserManager):
+    def create_user(self, email, password=None, **extra_fields):
+        if not email:
+            raise ValueError("The Email field must be set")
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)  # Зашифровать пароль
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, email, password=None, **extra_fields):
+        """Создание суперпользователя"""
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+
+        return self.create_user(email, password, **extra_fields)
 
 
 class User(AbstractUser):
@@ -28,6 +46,8 @@ class User(AbstractUser):
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 
+    objects = CustomUserManager()
+
     class Meta:
         verbose_name="Пользователь"
         verbose_name_plural="Пользователи"
@@ -44,10 +64,10 @@ class Payment(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)  # Ссылка на пользователя
     payment_date = models.DateTimeField(auto_now_add=True)  # Дата и время оплаты
-    course = models.ForeignKey(Course, null=True, blank=True,
-                               on_delete=models.CASCADE)  # Ссылка на оплаченный курс (может быть пустым)
-    lesson = models.ForeignKey(Lesson, null=True, blank=True,
-                               on_delete=models.CASCADE)  # Ссылка на оплаченный урок (может быть пустым)
+    paid_course = models.ForeignKey(Course, null=True, blank=True,
+                               on_delete=models.SET_NULL)  # Ссылка на оплаченный курс (может быть пустым)
+    paid_lesson = models.ForeignKey(Lesson, null=True, blank=True,
+                               on_delete=models.SET_NULL)  # Ссылка на оплаченный урок (может быть пустым)
     amount = models.DecimalField(max_digits=10, decimal_places=2)  # Сумма оплаты
     payment_method = models.CharField(max_length=10, choices=PAYMENT_METHOD_CHOICES)  # Способ оплаты
 

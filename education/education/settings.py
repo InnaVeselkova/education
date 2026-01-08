@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "users",
     "education_app",
+    "rest_framework.authtoken",
 ]
 
 MIDDLEWARE = [
@@ -100,3 +101,13 @@ MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 AUTH_USER_MODEL = "users.User"
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',  #токен-аутентификация
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',  # Обеспечивает, что требуется аутентификация по умолчанию
+    ],
+}
