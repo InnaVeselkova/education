@@ -1,14 +1,17 @@
 from rest_framework import generics, permissions, viewsets
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Payment
-from .serializers import UserSerializer, PaymentSerializer
+from .serializers import UserSerializer, PaymentSerializer, MyTokenObtainPairSerializer
 from rest_framework import generics, filters
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework_simplejwt.views import TokenObtainPairView
 
-
+class MyTokenObtainPairView(TokenObtainPairView):
+    serializer_class = MyTokenObtainPairSerializer
 
 
 class CustomAuthToken(ObtainAuthToken):
@@ -21,12 +24,14 @@ class CustomAuthToken(ObtainAuthToken):
 
 class UserProfileEditView(generics.UpdateAPIView):
     serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]  # Добавление проверки авторизации
 
 
     def get_object(self):
         return self.request.user
 
-
+@api_view(['GET', 'POST'])  # Допустимые методы
+@permission_classes([permissions.IsAuthenticated])  # Проверка авторизации
 class PaymentListCreateView(generics.ListCreateAPIView):
     queryset = Payment.objects.all()
     serializer_class = PaymentSerializer
