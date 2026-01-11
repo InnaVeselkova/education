@@ -42,3 +42,6 @@ class PaymentListCreateView(generics.ListCreateAPIView):
     ordering_fields = ['payment_date']  # Поля для сортировки
     ordering = ['payment_date']
     permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user, owner=self.request.user)
