@@ -1,7 +1,6 @@
 from rest_framework import generics, permissions, viewsets
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
-from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Payment
@@ -30,8 +29,7 @@ class UserProfileEditView(generics.UpdateAPIView):
     def get_object(self):
         return self.request.user
 
-@api_view(['GET', 'POST'])  # Допустимые методы
-@permission_classes([permissions.IsAuthenticated])  # Проверка авторизации
+
 class PaymentListCreateView(generics.ListCreateAPIView):
     queryset = Payment.objects.all()
     serializer_class = PaymentSerializer
@@ -43,3 +41,4 @@ class PaymentListCreateView(generics.ListCreateAPIView):
     }
     ordering_fields = ['payment_date']  # Поля для сортировки
     ordering = ['payment_date']
+    permission_classes = [permissions.IsAuthenticated]
