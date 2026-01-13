@@ -11,7 +11,7 @@ class CourseViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action in ['create', 'destroy']:
-            return [IsModeratorOrAdmin()]  # Доступ только для модераторов или администраторов
+            return [permissions.IsAdminUser()]  # Только администраторы могут создавать или удалять курсы
         return [permissions.IsAuthenticated()]  # Остальные действия для аутентифицированных пользователей
 
 class LessonList(generics.ListCreateAPIView):
@@ -19,27 +19,39 @@ class LessonList(generics.ListCreateAPIView):
     serializer_class = LessonSerializer
 
     def get_permissions(self):
-        return [permissions.IsAuthenticated()]  # Аутентифицированные пользователи могут видеть список уроков
+        # Все аутентифицированные пользователи могут видеть список уроков
+        return [permissions.IsAuthenticated()]
 
     def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user)  # Привязываем урок к текущему пользователю
+        # Модераторы и администраторы могут создавать уроки
+        if self.request.user.is_staff or self.request.user.groups.filter(name='Модераторы').exists():
+            serializer.save(owner=self.request.user)  # Привязываем урок к текущему пользователю
+        else:
+            raise PermissionDenied("У вас нет прав на создание уроков.")
 
 class LessonDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Lesson.objects.all()
     serializer_class = LessonSerializer
 
     def get_permissions(self):
-        if self.request.method in ['PUT', 'PATCH', 'DELETE']:
-            return [IsModeratorOrAdmin()]  # Доступ только для модераторов или администраторов для редактирования и удаления
+        # Разрешаем доступ всем аутентифицированным пользователям для получения деталей урока
+        if self.request.method in ['PUT', 'PATCH']:
+            # Модераторы и администраторы могут изменять уроки
+            return [IsModeratorOrAdmin()]
+        elif self.request.method == 'DELETE':
+            # Только автор урока или администратор могут удалять уроки
+            return [permissions.IsAdminUser()]  # Вызывается, чтобы только администраторы могли удалять
         return [permissions.IsAuthenticated()]  # Остальные действия для аутентифицированных пользователей
 
     def perform_update(self, serializer):
         instance = self.get_object()
-        if instance.created_by != self.request.user and not self.request.user.is_staff:
+        # Проверяем, является ли пользователь автором или администратором
+        if instance.owner != self.request.user and not self.request.user.is_staff:
             raise PermissionDenied("У вас нет прав редактировать этот объект.")
-        serializer.save()  # Сохраняем изменения
+        serializer.save()
 
     def perform_destroy(self, instance):
-        if instance.created_by != self.request.user and not self.request.user.is_staff:
+        # Проверяем, является ли пользователь автором урока или администратором
+        if instance.owner != self.request.user and not self.request.user.is_staff:
             raise PermissionDenied("У вас нет прав удалить этот объект.")
-        instance.delete()  # Удаляем урок
+        instance.delete()

@@ -4,7 +4,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Payment
-from .serializers import UserSerializer, PaymentSerializer, MyTokenObtainPairSerializer
+from .serializers import UserSerializer, PaymentSerializer, MyTokenObtainPairSerializer, UserRegisterSerializer
 from rest_framework import generics, filters
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -21,6 +21,7 @@ class CustomAuthToken(ObtainAuthToken):
         token, created = Token.objects.get_or_create(user=user)
         return Response({'token': token.key}, status=status.HTTP_200_OK)
 
+
 class UserProfileEditView(generics.UpdateAPIView):
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]  # Добавление проверки авторизации
@@ -28,6 +29,20 @@ class UserProfileEditView(generics.UpdateAPIView):
 
     def get_object(self):
         return self.request.user
+
+
+class UserRegisterView(generics.CreateAPIView):
+    serializer_class = UserRegisterSerializer
+    permission_classes = [permissions.AllowAny]  # Разрешить регистрация для всех
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()  # Сохранить пользователя
+            return Response({
+                "user": UserSerializer(user).data,
+                "message": "Пользователь успешно зарегистрирован."
+            }, status=status.HTTP_201_CREATED)
 
 
 class PaymentListCreateView(generics.ListCreateAPIView):
