@@ -10,9 +10,26 @@ class CourseViewSet(viewsets.ModelViewSet):
     serializer_class = CourseSerializer
 
     def get_permissions(self):
-        if self.action in ['create', 'destroy']:
-            return [permissions.IsAdminUser()]  # Только администраторы могут создавать или удалять курсы
-        return [permissions.IsAuthenticated()]  # Остальные действия для аутентифицированных пользователей
+        # Разрешение для всех действий - только для аутентифицированных пользователей
+        return [permissions.IsAuthenticated()]
+
+    def perform_create(self, serializer):
+        # Устанавливаем владельцем курса текущего пользователя
+        serializer.save(owner=self.request.user)
+
+    def perform_update(self, serializer):
+        instance = self.get_object()  # Получаем объект курса
+        # Проверяем, является ли текущий пользователь владельцем курса
+        if instance.owner != self.request.user:
+            raise PermissionDenied("У вас нет прав редактировать этот объект.")
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        instance = self.get_object()  # Получаем объект курса
+        # Проверяем, является ли текущий пользователь владельцем курса
+        if instance.owner != self.request.user:
+            raise PermissionDenied("У вас нет прав удалить этот объект.")
+        instance.delete()
 
 class LessonList(generics.ListCreateAPIView):
     queryset = Lesson.objects.all()
