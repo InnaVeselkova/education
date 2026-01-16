@@ -35,7 +35,7 @@ class LessonList(generics.ListAPIView):
 class LessonCreate(generics.CreateAPIView):
     queryset = Lesson.objects.all()
     serializer_class = LessonSerializer
-    permission_classes = [IsOwner] # Доступ только для владельцев курса
+    permission_classes = [IsNotModeratorOrAdmin] # Нет доступа для администраторов и модераторов
 
     def perform_create(self, serializer):
         # Устанавливаем владельца для нового урока
@@ -51,7 +51,7 @@ class LessonDetail(generics.RetrieveAPIView):
 class LessonUpdate(generics.UpdateAPIView):
     queryset = Lesson.objects.all()
     serializer_class = LessonSerializer
-    permission_classes = [IsModeratorOrAdmin, IsOwner]  # Доступ только для владельцев, модераторов и администраторов
+    permission_classes = [IsModeratorOrAdmin | IsOwner]  # Доступ только для владельцев, модераторов и администраторов
 
     def perform_update(self, serializer):
         serializer.save()
