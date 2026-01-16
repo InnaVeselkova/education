@@ -63,6 +63,7 @@ class Payment(models.Model):
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)  # Ссылка на пользователя
+    owner = models.ForeignKey(User, related_name='payments', on_delete=models.CASCADE)  # Владелец платежа
     payment_date = models.DateTimeField(auto_now_add=True)  # Дата и время оплаты
     paid_course = models.ForeignKey(Course, null=True, blank=True,
                                on_delete=models.SET_NULL)  # Ссылка на оплаченный курс (может быть пустым)

@@ -1,10 +1,12 @@
 from django.db import models
+from django.conf import settings
 
 
 class Course(models.Model):
     title = models.CharField(max_length=200)
     preview_image = models.ImageField(upload_to="course_images/",  blank=True, null=True)
     description = models.TextField()
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, default=6)
 
     def __str__(self):
         return self.title
@@ -20,6 +22,7 @@ class Lesson(models.Model):
     preview_image = models.ImageField(upload_to="lesson_images/",  blank=True, null=True)
     video_url = models.URLField(blank=True, null=True)
     course = models.ForeignKey(Course, related_name="lessons", on_delete=models.CASCADE)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, default=6)
 
     def __str__(self):
         return f"{self.title} - {self.course.title}"

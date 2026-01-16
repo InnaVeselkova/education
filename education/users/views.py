@@ -1,14 +1,16 @@
-from rest_framework import generics, permissions, viewsets
+from rest_framework import generics, permissions, viewsets, filters
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Payment
-from .serializers import UserSerializer, PaymentSerializer
-from rest_framework import generics, filters
+from .models import Payment, User
+from .serializers import UserSerializer, PaymentSerializer, MyTokenObtainPairSerializer, UserRegisterSerializer
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework_simplejwt.views import TokenObtainPairView
 
-
+class MyTokenObtainPairView(TokenObtainPairView):
+    serializer_class = MyTokenObtainPairSerializer
 
 
 class CustomAuthToken(ObtainAuthToken):
@@ -19,12 +21,46 @@ class CustomAuthToken(ObtainAuthToken):
         token, created = Token.objects.get_or_create(user=user)
         return Response({'token': token.key}, status=status.HTTP_200_OK)
 
+
 class UserProfileEditView(generics.UpdateAPIView):
     serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]  # Добавление проверки авторизации
 
 
     def get_object(self):
         return self.request.user
+
+
+class UserRegisterView(generics.CreateAPIView):
+    serializer_class = UserRegisterSerializer
+    permission_classes = [permissions.AllowAny]  # Разрешить регистрация для всех
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()  # Сохранить пользователя
+            return Response({
+                "user": UserSerializer(user).data,
+                "message": "Пользователь успешно зарегистрирован."
+            }, status=status.HTTP_201_CREATED)
+
+
+class UserListView(generics.ListAPIView):
+    query_set = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
+
+class UserDetailView(generics.RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
+
+class UserDeleteView(generics.DestroyAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
 
 
 class PaymentListCreateView(generics.ListCreateAPIView):
@@ -38,3 +74,7 @@ class PaymentListCreateView(generics.ListCreateAPIView):
     }
     ordering_fields = ['payment_date']  # Поля для сортировки
     ordering = ['payment_date']
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user, owner=self.request.user)
