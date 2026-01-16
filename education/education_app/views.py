@@ -1,8 +1,11 @@
+from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, generics
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from .models import Course, Lesson
-from .serializers import CourseSerializer, LessonSerializer
+from .models import Course, Lesson, Subscription
+from .serializers import CourseSerializer, LessonSerializer, SubscriptionSerializer
 from .permissions import IsModeratorOrAdmin, IsNotModeratorOrAdmin, IsOwner
 
 
@@ -24,6 +27,11 @@ class CourseViewSet(viewsets.ModelViewSet):
         else:
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request  # Передаем текущий запрос в контекст
+        return context
 
 
 class LessonList(generics.ListAPIView):
@@ -65,3 +73,26 @@ class LessonDelete(generics.DestroyAPIView):
     def perform_destroy(self, instance):
         instance.delete()
 
+
+class SubscriptionView(APIView):
+    serializer_class = SubscriptionSerializer
+    permission_classes = [IsAuthenticated]
+
+    def post(self, *args, **kwargs):
+        user = self.request.user
+        course_id = self.request.data.get('course')
+        course_item = get_object_or_404(Course, pk=course_id)
+
+        # Проверяем, есть ли у пользователя подписка на курс
+        subs_item = Subscription.objects.filter(user=user, course=course_item)
+
+        if subs_item.exists():
+            # Если подписка существует, удаляем ее
+            subs_item.delete()
+            message = 'Подписка удалена'
+        else:
+            # Если подписки нет, создаем новую
+            Subscription.objects.create(user=user, course=course_item)
+            message = 'Подписка добавлена'
+
+        return Response({"message": message})
