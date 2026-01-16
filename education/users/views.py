@@ -1,11 +1,11 @@
-from rest_framework import generics, permissions, viewsets
+from rest_framework import generics, permissions, viewsets, filters
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Payment
+from .models import Payment, User
 from .serializers import UserSerializer, PaymentSerializer, MyTokenObtainPairSerializer, UserRegisterSerializer
-from rest_framework import generics, filters
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework_simplejwt.views import TokenObtainPairView
 
@@ -43,6 +43,24 @@ class UserRegisterView(generics.CreateAPIView):
                 "user": UserSerializer(user).data,
                 "message": "Пользователь успешно зарегистрирован."
             }, status=status.HTTP_201_CREATED)
+
+
+class UserListView(generics.ListAPIView):
+    query_set = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
+
+class UserDetailView(generics.RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
+
+class UserDeleteView(generics.DestroyAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
 
 
 class PaymentListCreateView(generics.ListCreateAPIView):

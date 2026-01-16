@@ -1,7 +1,8 @@
 from django.urls import path
-from rest_framework_simplejwt.views import TokenRefreshView, TokenObtainPairView
+from rest_framework_simplejwt.views import TokenRefreshView
 
-from .views import UserProfileEditView, PaymentListCreateView, UserRegisterView
+from .views import UserProfileEditView, PaymentListCreateView, UserRegisterView, UserListView, UserDetailView, \
+    UserDeleteView
 from .views import CustomAuthToken
 from .views import MyTokenObtainPairView
 
@@ -9,6 +10,9 @@ app_name='users'
 
 urlpatterns = [
     path('profile/edit/', UserProfileEditView.as_view(), name='user_edit'),
+    path('users/', UserListView.as_view(), name='user-list'),  # Список пользователей
+    path('users/<int:pk>/', UserDetailView.as_view(), name='user-detail'),  # Детальный просмотр пользователя
+    path('users/<int:pk>/delete/', UserDeleteView.as_view(), name='user-delete'),  # Удаление пользователя
     path('payments/', PaymentListCreateView.as_view(), name='payment_list_create'),
     path('token-auth/', CustomAuthToken.as_view(), name='token_auth'),
     path('token/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),# Эндпоинт для получения токена
