@@ -4,10 +4,20 @@ from .validators import validate_video_url
 
 
 class LessonSerializer(serializers.ModelSerializer):
+    video_url = serializers.CharField(required=False)
+    owner = serializers.PrimaryKeyRelatedField(read_only=True)
+
     class Meta:
         model = Lesson
         fields = "__all__"
-        validators = [validate_video_url]
+
+    def validate(self, data):
+        # Проверяем, есть ли video_url в переданных данных
+        if 'video_url' in data:
+            video_url = data['video_url']
+            # Вызываем валидацию для video_url
+            validate_video_url(video_url)
+        return data
 
 
 class CourseSerializer(serializers.ModelSerializer):

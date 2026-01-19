@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import Course, Lesson, Subscription
+from .paginators import CustomPageNumberPagination
 from .serializers import CourseSerializer, LessonSerializer, SubscriptionSerializer
 from .permissions import IsModeratorOrAdmin, IsNotModeratorOrAdmin, IsOwner
 
@@ -12,6 +13,7 @@ from .permissions import IsModeratorOrAdmin, IsNotModeratorOrAdmin, IsOwner
 class CourseViewSet(viewsets.ModelViewSet):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
+    pagination_class = CustomPageNumberPagination
 
     def get_permissions(self):
         # Модераторы и администраторы не могут изменять курсы
@@ -38,6 +40,7 @@ class LessonList(generics.ListAPIView):
     queryset = Lesson.objects.all()
     serializer_class = LessonSerializer
     permission_classes = [IsAuthenticated] # Доступ только для аутентифицированных пользователей
+    pagination_class = CustomPageNumberPagination
 
 
 class LessonCreate(generics.CreateAPIView):
@@ -96,3 +99,5 @@ class SubscriptionView(APIView):
             message = 'Подписка добавлена'
 
         return Response({"message": message})
+
+

@@ -1,4 +1,5 @@
-from rest_framework.permissions import BasePermission
+from rest_framework.permissions import BasePermission, SAFE_METHODS
+
 
 class IsModeratorOrAdmin(BasePermission):
     """
@@ -12,6 +13,7 @@ class IsModeratorOrAdmin(BasePermission):
         return request.user.groups.filter(name='Модераторы').exists() # Проверка на принадлежность к группе "Модераторы"
 
 
+
 class IsNotModeratorOrAdmin(BasePermission):
     """
     Разрешение, запрещающее доступ для модераторов и администраторов
@@ -19,10 +21,19 @@ class IsNotModeratorOrAdmin(BasePermission):
     """
 
     def has_permission(self, request, view):
-        # Разрешаем доступ всем, кроме администраторов и модераторов при изменении
-        if request.user.is_staff:  # Если пользователь администратор
-            return view.action not in ['update', 'partial_update', 'destroy']
-        return not request.user.groups.filter(name='Модераторы').exists()
+        if not request.user or not request.user.is_authenticated:
+            return False
+
+        if request.method in SAFE_METHODS:
+            return True
+
+        # запрещаем изменение администраторам и модераторам
+        if request.user.is_staff:
+            return False
+        if request.user.groups.filter(name='Модераторы').exists():
+            return False
+
+        return True
 
 
 class IsOwner(BasePermission):

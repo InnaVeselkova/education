@@ -22,7 +22,7 @@ class Lesson(models.Model):
     preview_image = models.ImageField(upload_to="lesson_images/",  blank=True, null=True)
     video_url = models.URLField(blank=True, null=True)
     course = models.ForeignKey(Course, related_name="lessons", on_delete=models.CASCADE)
-    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, default=6)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
     def __str__(self):
         return f"{self.title} - {self.course.title}"
@@ -43,4 +43,3 @@ class Subscription(models.Model):
 
     def __str__(self):
         return f"{self.user} подписан на {self.course}"
-
