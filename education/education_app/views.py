@@ -78,7 +78,6 @@ class LessonDelete(generics.DestroyAPIView):
 
 
 class SubscriptionView(APIView):
-    serializer_class = SubscriptionSerializer
     permission_classes = [IsAuthenticated]
 
     def post(self, *args, **kwargs):
