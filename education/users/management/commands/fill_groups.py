@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from users.models import User  # Импорт вашей модели пользователя
+from education.users.models import User  # Импорт вашей модели пользователя
 from django.contrib.auth.models import Group
 
 

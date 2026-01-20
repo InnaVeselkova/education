@@ -2,7 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework.urls import app_name
 
-from .views import CourseViewSet, LessonList, LessonDetail, LessonCreate, LessonUpdate, LessonDelete
+from .views import CourseViewSet, LessonList, LessonDetail, LessonCreate, LessonUpdate, LessonDelete, SubscriptionView
 
 app_name='education_app'
 
@@ -17,4 +17,5 @@ urlpatterns = [
     path('lessons/<int:pk>/', LessonDetail.as_view(), name='lesson-detail'),  # Просмотр конкретного урока
     path('lessons/<int:pk>/update/', LessonUpdate.as_view(), name='lesson_update'),  # Обновление конкретного урока
     path('lessons/<int:pk>/delete/', LessonDelete.as_view(), name='lesson_delete'),  # Удаление конкретного урока
+    path('subscriptions/', SubscriptionView.as_view(), name='subscription'),
 ]

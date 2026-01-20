@@ -22,7 +22,7 @@ class Lesson(models.Model):
     preview_image = models.ImageField(upload_to="lesson_images/",  blank=True, null=True)
     video_url = models.URLField(blank=True, null=True)
     course = models.ForeignKey(Course, related_name="lessons", on_delete=models.CASCADE)
-    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, default=6)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
     def __str__(self):
         return f"{self.title} - {self.course.title}"
@@ -30,3 +30,16 @@ class Lesson(models.Model):
     class Meta:
         verbose_name="Урок"
         verbose_name_plural="Уроки"
+
+
+class Subscription(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('user', 'course')  # Обеспечим уникальность подписки на курс для каждого пользователя
+        verbose_name = "Подписка"
+        verbose_name_plural = "Подписки"
+
+    def __str__(self):
+        return f"{self.user} подписан на {self.course}"
