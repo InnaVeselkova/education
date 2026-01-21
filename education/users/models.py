@@ -72,9 +72,20 @@ class Payment(models.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2)  # Сумма оплаты
     payment_method = models.CharField(max_length=10, choices=PAYMENT_METHOD_CHOICES)  # Способ оплаты
 
+    stripe_product_id = models.CharField(max_length=200,
+                                         blank=True,
+                                         null=True)
+    stripe_price_id = models.CharField(max_length=200,
+                                       blank=True,
+                                       null=True)
+    stripe_session_id = models.CharField(max_length=200,
+                                         blank=True,
+                                         null=True)
+    checkout_url = models.URLField(blank=True,
+                                   null=True)
+
     def __str__(self):
-        payment_method_display = self.get_payment_method_display() if self.payment_method else 'Неизвестный способ'
-        return f"Платеж от {self.user.username} - сумма: {self.amount} ({payment_method_display})"
+        return f"Платеж {self.id} от {self.user} за {self.amount}"
 
     class Meta:
         verbose_name = "Платеж"
