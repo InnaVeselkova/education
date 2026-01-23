@@ -31,7 +31,7 @@ class PaymentSerializer(serializers.ModelSerializer):
         read_only_fields = [
             'id', 'payment_date',
             'stripe_product_id', 'stripe_price_id',
-            'stripe_session_id', 'checkout_url', 'stripe_status'
+            'stripe_session_id', 'checkout_url',
         ]
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):

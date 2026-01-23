@@ -60,6 +60,7 @@ class Payment(models.Model):
     PAYMENT_METHOD_CHOICES = [
         ('cash', 'Наличные'),
         ('transfer', 'Перевод на счет'),
+        ('stripe', 'Stripe')
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)  # Ссылка на пользователя
