@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     "rest_framework.authtoken",
     "django_filters",
     "rest_framework_simplejwt",
+    "drf_yasg",
 ]
 
 MIDDLEWARE = [
@@ -116,10 +117,12 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_FILTER_BACKENDS': (
         'django_filters.rest_framework.DjangoFilterBackend',
-        'rest_framework.filters.OrderingFilter',)  # Для сортировки
+        'rest_framework.filters.OrderingFilter',), # Для сортировки
 }
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
+
+STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')

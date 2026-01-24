@@ -1,3 +1,5 @@
+from django.shortcuts import redirect
+from django.views.generic import TemplateView
 from rest_framework import generics, permissions, viewsets, filters
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
@@ -8,6 +10,12 @@ from .models import Payment, User
 from .serializers import UserSerializer, PaymentSerializer, MyTokenObtainPairSerializer, UserRegisterSerializer
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework_simplejwt.views import TokenObtainPairView
+
+
+from education_app.models import Course
+
+from .stripe_service import init_stripe_payment
+
 
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
@@ -62,19 +70,65 @@ class UserDeleteView(generics.DestroyAPIView):
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
 
-
 class PaymentListCreateView(generics.ListCreateAPIView):
     queryset = Payment.objects.all()
     serializer_class = PaymentSerializer
-    filter_backends = (DjangoFilterBackend, filters.OrderingFilter)
-    filterset_fields = {
-        'paid_course': 'paid_course',  # Фильтрация по курсу
-        'paid_lesson': 'paid_lesson',  # Фильтрация по уроку
-        'payment_method': 'payment_method',  # Фильтрация по методу оплаты
-    }
-    ordering_fields = ['payment_date']  # Поля для сортировки
-    ordering = ['payment_date']
     permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ['paid_course', 'payment_method']
+    ordering_fields = ['payment_date']
+    ordering = ['payment_date']
+
+    def create(self, request, *args, **kwargs):
+        data = request.data.copy()
+
+        course_id = data.get('paid_course')
+        if not course_id:
+            return Response({"detail": "Не указан paid_course."}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            course = Course.objects.get(pk=course_id)
+        except Course.DoesNotExist:
+            return Response({"detail": "Курс не найден."}, status=status.HTTP_404_NOT_FOUND)
+
+        payment_method = data.get('payment_method')
+
+        if payment_method == "stripe":
+            # Создаем платеж
+            payment = Payment.objects.create(
+                user=request.user,
+                paid_course=course,
+                payment_method='stripe',
+            )
+            try:
+                session_data = init_stripe_payment(
+                    payment,
+                    success_url=request.build_absolute_uri('/payment-success/'),
+                    cancel_url = request.build_absolute_uri('/payment-cancel/')
+                )
+            except Exception as e:
+                payment.delete()
+                return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+            # Перенаправляем на Stripe
+            return redirect(session_data['url'])
+
+        elif payment_method in ("cash", "transfer"):
+            if 'amount' not in data:
+                data['amount'] = str(course.price)
+            return super().create(request, *args, **kwargs)
+
+        else:
+            return Response({"detail": "Неподдерживаемый payment_method."}, status=status.HTTP_400_BAD_REQUEST)
+
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user, owner=self.request.user)
+
+
+class PaymentSuccessView(TemplateView):
+    template_name = 'payments/success.html'
+
+
+class PaymentCancelView(TemplateView):
+    template_name = 'payments/cancel.html'
+

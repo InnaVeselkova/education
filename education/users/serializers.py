@@ -28,7 +28,11 @@ class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payment
         fields = '__all__'
-
+        read_only_fields = [
+            'id', 'payment_date',
+            'stripe_product_id', 'stripe_price_id',
+            'stripe_session_id', 'checkout_url',
+        ]
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
