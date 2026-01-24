@@ -8,6 +8,7 @@ from .models import Course, Lesson, Subscription
 from .paginators import CustomPageNumberPagination
 from .serializers import CourseSerializer, LessonSerializer, SubscriptionSerializer
 from .permissions import IsModeratorOrAdmin, IsNotModeratorOrAdmin, IsOwner
+from .tasks import send_course_update_email
 
 
 class CourseViewSet(viewsets.ModelViewSet):
@@ -34,6 +35,14 @@ class CourseViewSet(viewsets.ModelViewSet):
         context = super().get_serializer_context()
         context['request'] = self.request  # Передаем текущий запрос в контекст
         return context
+
+    def perform_update(self, serializer):
+        course = serializer.save()
+        subscriptions = Subscription.objects.filter(course=course)
+        for subscription in subscriptions:
+            user_email = subscription.user.email
+            course_title = course.title
+            send_course_update_email.delay(user_email, course_title)
 
 
 class LessonList(generics.ListAPIView):
@@ -98,5 +107,3 @@ class SubscriptionView(APIView):
             message = 'Подписка добавлена'
 
         return Response({"message": message})
-
-
