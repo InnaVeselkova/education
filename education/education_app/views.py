@@ -38,7 +38,7 @@ class CourseViewSet(viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         course = serializer.save()
-        subscriptions = Subscription.objects.filter(course=course)
+        subscriptions = Subscription.objects.select_related('user').filter(course=course)
         for subscription in subscriptions:
             user_email = subscription.user.email
             course_title = course.title
