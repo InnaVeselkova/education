@@ -167,3 +167,5 @@ if 'test' in sys.argv:
         }
     }
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
