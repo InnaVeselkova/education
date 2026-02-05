@@ -32,7 +32,7 @@ class CustomAuthToken(ObtainAuthToken):
 
 class UserProfileEditView(generics.UpdateAPIView):
     serializer_class = UserSerializer
-    permission_classes = [permissions.IsAuthenticated]  # Добавление проверки авторизации
+    permission_classes = [permissions.IsAuthenticated]
 
 
     def get_object(self):

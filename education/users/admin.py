@@ -11,7 +11,7 @@ class CustomUserAdmin(UserAdmin):
     ordering = ('email',)
     search_fields = ('email', 'phone_number')
 
-    #  поля, которые  доступны для редактирования в админке
+    #  поля, которые доступны для редактирования в админке
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
         ('Personal info', {'fields': ('first_name', 'last_name', 'phone_number', 'avatar', 'city')}),
